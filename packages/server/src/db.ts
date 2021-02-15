@@ -31,6 +31,7 @@ export interface DbConfigConnection {
 	database?: string;
 	filename?: string;
 	password?: string;
+	ssl?: { rejectUnauthorized: false };
 }
 
 export interface KnexDatabaseConfig {
@@ -62,6 +63,7 @@ export function makeKnexConfig(dbConfig: DatabaseConfig): KnexDatabaseConfig {
 		connection.port = dbConfig.port;
 		connection.user = dbConfig.user;
 		connection.password = dbConfig.password;
+		connection.ssl = { rejectUnauthorized: false }
 	}
 
 	return {
