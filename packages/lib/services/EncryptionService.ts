@@ -6,7 +6,7 @@ import MasterKey from '../models/MasterKey';
 import BaseItem from '../models/BaseItem';
 
 const { padLeft } = require('../string-utils.js');
-const JoplinError = require('../JoplinError');
+import JoplinError from '../JoplinError';
 
 function hexPad(s: string, length: number) {
 	return padLeft(s, length, '0');
@@ -253,6 +253,10 @@ export default class EncryptionService {
 	// 	const hexSeed = sjcl.codec.hex.toBits(hexBytes.join(''));
 	// 	sjcl.random.addEntropy(hexSeed, 1024, 'shim.randomBytes');
 	// }
+
+	async generateApiToken() {
+		return await this.randomHexString(64);
+	}
 
 	async randomHexString(byteCount: number) {
 		const bytes: any[] = await shim.randomBytes(byteCount);
