@@ -8,7 +8,7 @@ import Logger, { LoggerWrapper, TargetType } from '@joplin/lib/Logger';
 import config, { initConfig, runningInDocker, EnvVariables } from './config';
 import { createDb, dropDb } from './tools/dbTools';
 import { dropTables, connectDb, disconnectDb, migrateDb, waitForConnection, sqliteDefaultDir } from './db';
-import { AppContext, Env } from './utils/types';
+import { AppContext, Env, KoaNext } from './utils/types';
 import FsDriverNode from '@joplin/lib/fs-driver-node';
 import routeHandler from './middleware/routeHandler';
 import notificationHandler from './middleware/notificationHandler';
@@ -17,6 +17,7 @@ import setupAppContext from './utils/setupAppContext';
 import { initializeJoplinUtils } from './utils/joplinUtils';
 import startServices from './utils/startServices';
 import { credentialFile } from './utils/testing/testUtils';
+import apiVersionHandler from './middleware/apiVersionHandler';
 
 const cors = require('@koa/cors');
 const nodeEnvFile = require('node-env-file');
@@ -119,6 +120,29 @@ async function main() {
 		return false;
 	}
 
+	// This is used to catch any low level error thrown from a middleware. It
+	// won't deal with errors from routeHandler, which catches and handles its
+	// own errors.
+	app.use(async (ctx: AppContext, next: KoaNext) => {
+		try {
+			await next();
+		} catch (error) {
+			ctx.status = error.httpCode || 500;
+			ctx.body = JSON.stringify({ error: error.message });
+		}
+	});
+
+	// Creates the request-specific "joplin" context property.
+	app.use(async (ctx: AppContext, next: KoaNext) => {
+		ctx.joplin = {
+			...ctx.joplinBase,
+			owner: null,
+			notifications: [],
+		};
+
+		return next();
+	});
+
 	app.use(cors({
 		// https://github.com/koajs/cors/issues/52#issuecomment-413887382
 		origin: (ctx: AppContext) => {
@@ -132,6 +156,8 @@ async function main() {
 			}
 		},
 	}));
+
+	app.use(apiVersionHandler);
 	app.use(ownerHandler);
 	app.use(notificationHandler);
 	app.use(routeHandler);
@@ -188,16 +214,16 @@ async function main() {
 		delete connectionCheckLogInfo.connection;
 
 		appLogger().info('Connection check:', connectionCheckLogInfo);
-		const appContext = app.context as AppContext;
+		const ctx = app.context as AppContext;
 
-		await setupAppContext(appContext, env, connectionCheck.connection, appLogger);
-		await initializeJoplinUtils(config(), appContext.models, appContext.services.mustache);
+		await setupAppContext(ctx, env, connectionCheck.connection, appLogger);
+		await initializeJoplinUtils(config(), ctx.joplinBase.models, ctx.joplinBase.services.mustache);
 
 		appLogger().info('Migrating database...');
-		await migrateDb(appContext.db);
+		await migrateDb(ctx.joplinBase.db);
 
 		appLogger().info('Starting services...');
-		await startServices(appContext);
+		await startServices(ctx.joplinBase.services);
 
 		appLogger().info(`Call this for testing: \`curl ${config().apiBaseUrl}/api/ping\``);
 

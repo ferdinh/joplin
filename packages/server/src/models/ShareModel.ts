@@ -6,6 +6,7 @@ import { ErrorBadRequest, ErrorForbidden, ErrorNotFound } from '../utils/errors'
 import { setQueryParameters } from '../utils/urlUtils';
 import BaseModel, { AclAction, DeleteOptions, ValidateOptions } from './BaseModel';
 import { userIdFromUserContentUrl } from '../utils/routeUtils';
+import { getCanShareFolder } from './utils/user';
 
 export default class ShareModel extends BaseModel<Share> {
 
@@ -15,7 +16,10 @@ export default class ShareModel extends BaseModel<Share> {
 
 	public async checkIfAllowed(user: User, action: AclAction, resource: Share = null): Promise<void> {
 		if (action === AclAction.Create) {
-			if (!user.can_share) throw new ErrorForbidden('The sharing feature is not enabled for this account');
+			if (resource.type === ShareType.Folder && !getCanShareFolder(user)) throw new ErrorForbidden('The sharing feature is not enabled for this account');
+
+			// Note that currently all users can always share notes by URL so
+			// there's no check on the permission
 
 			if (!await this.models().item().userHasItem(user.id, resource.item_id)) throw new ErrorForbidden('cannot share an item not owned by the user');
 
