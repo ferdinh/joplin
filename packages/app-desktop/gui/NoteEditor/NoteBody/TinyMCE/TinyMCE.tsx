@@ -442,6 +442,16 @@ const TinyMCE = (props: NoteBodyEditorProps, ref: any) => {
 				background-color: ${theme.backgroundColor} !important;
 			}
 
+			/*
+			When creating dialogs, TinyMCE doesn't seem to offer a way to style the components or to assign classes to them.
+			We want the code dialog box text area to be monospace, and since we can't target this precisely, we apply the style
+			to all textareas of all dialogs. As I think only the code dialog displays a textarea that should be fine.
+			*/
+			
+			.tox .tox-dialog textarea {
+				font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+			}
+
 			.tox .tox-editor-header {
 				border: none;
 			}
@@ -1123,16 +1133,15 @@ const TinyMCE = (props: NoteBodyEditorProps, ref: any) => {
 		}
 
 		function onKeyDown(event: any) {
-			// It seems "paste as text" is handled automatically by
-			// on Windows so the code below so we need to run the below
-			// code only on macOS (and maybe Linux). If we were to run
-			// this on Windows we would have this double-paste issue:
+			// It seems "paste as text" is handled automatically on Windows and Linux,
+			// so we need to run the below code only on macOS. If we were to run this
+			// on Windows/Linux, we would have this double-paste issue:
 			// https://github.com/laurent22/joplin/issues/4243
 
 			// Handle "paste as text". Note that when pressing CtrlOrCmd+Shift+V it's going
 			// to trigger the "keydown" event but not the "paste" event, so it's ok to process
 			// it here and we don't need to do anything special in onPaste
-			if (!shim.isWindows()) {
+			if (!shim.isWindows() && !shim.isLinux()) {
 				if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.code === 'KeyV') {
 					pasteAsPlainText();
 				}

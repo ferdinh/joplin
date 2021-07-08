@@ -59,7 +59,7 @@ export function makeKnexConfig(dbConfig: DatabaseConfig): KnexDatabaseConfig {
 		connection.port = dbConfig.port;
 		connection.user = dbConfig.user;
 		connection.password = dbConfig.password;
-		connection.ssl = { rejectUnauthorized: false }
+		connection.ssl = { rejectUnauthorized: false };
 	}
 
 	return {
@@ -293,19 +293,6 @@ interface DatabaseTables {
 
 // AUTO-GENERATED-TYPES
 // Auto-generated using `npm run generate-types`
-export interface User extends WithDates, WithUuid {
-	email?: string;
-	password?: string;
-	full_name?: string;
-	is_admin?: number;
-	max_item_size?: number;
-	can_share?: number;
-	email_confirmed?: number;
-	must_set_password?: number;
-	account_type?: number;
-	can_upload?: number;
-}
-
 export interface Session extends WithDates, WithUuid {
 	user_id?: Uuid;
 	auth_code?: string;
@@ -428,22 +415,23 @@ export interface Subscription {
 	created_time?: string;
 }
 
+export interface User extends WithDates, WithUuid {
+	email?: string;
+	password?: string;
+	full_name?: string;
+	is_admin?: number;
+	email_confirmed?: number;
+	must_set_password?: number;
+	account_type?: number;
+	can_upload?: number;
+	max_item_size?: number | null;
+	can_share_folder?: number | null;
+	can_share_note?: number | null;
+	max_total_item_size?: number | null;
+	total_item_size?: number;
+}
+
 export const databaseSchema: DatabaseTables = {
-	users: {
-		id: { type: 'string' },
-		email: { type: 'string' },
-		password: { type: 'string' },
-		full_name: { type: 'string' },
-		is_admin: { type: 'number' },
-		updated_time: { type: 'string' },
-		created_time: { type: 'string' },
-		max_item_size: { type: 'number' },
-		can_share: { type: 'number' },
-		email_confirmed: { type: 'number' },
-		must_set_password: { type: 'number' },
-		account_type: { type: 'number' },
-		can_upload: { type: 'number' },
-	},
 	sessions: {
 		id: { type: 'string' },
 		user_id: { type: 'string' },
@@ -506,7 +494,7 @@ export const databaseSchema: DatabaseTables = {
 		jop_share_id: { type: 'string' },
 		jop_type: { type: 'number' },
 		jop_encryption_applied: { type: 'number' },
-		jop_updated_time: { type: 'number' },
+		jop_updated_time: { type: 'string' },
 	},
 	user_items: {
 		id: { type: 'number' },
@@ -578,6 +566,24 @@ export const databaseSchema: DatabaseTables = {
 		last_payment_failed_time: { type: 'string' },
 		updated_time: { type: 'string' },
 		created_time: { type: 'string' },
+	},
+	users: {
+		id: { type: 'string' },
+		email: { type: 'string' },
+		password: { type: 'string' },
+		full_name: { type: 'string' },
+		is_admin: { type: 'number' },
+		updated_time: { type: 'string' },
+		created_time: { type: 'string' },
+		email_confirmed: { type: 'number' },
+		must_set_password: { type: 'number' },
+		account_type: { type: 'number' },
+		can_upload: { type: 'number' },
+		max_item_size: { type: 'number' },
+		can_share_folder: { type: 'number' },
+		can_share_note: { type: 'number' },
+		max_total_item_size: { type: 'string' },
+		total_item_size: { type: 'string' },
 	},
 };
 // AUTO-GENERATED-TYPES
